@@ -1,0 +1,75 @@
+******************************************************************************
+******************************************************************************
+** This file creates Table 1
+** in "Nonbank Lending and Credit Cyclicality" by Fleckenstein et. al. (2024)
+******************************************************************************
+******************************************************************************
+set more off
+clear all
+set scheme s1color
+
+global output `"$package\results"'
+global data `"$package\data"'
+global code `"$package\code"'
+global figures `"$package\figures"'
+global tables `"$package\tables"'
+capture log close
+log using "$package/logs/table1.log", replace
+
+******************************************************************************
+use "$data\Final Data\main_facility_dataset.dta", clear
+
+keep if year>=2000 
+
+duplicates drop borrowercompanyid packageid facilityid, force 
+
+* indicators for deal purposes *
+gen			general_purpose = inlist(dealpurpose,"General Purpose","General Purpose/Refinance","General Purpose/Stock Repurchase")*100
+gen			working_capital = inlist(dealpurpose,"Working capital")*100
+gen			lbo = inlist(dealpurpose,"Leveraged Buyout","Sponsored Buyout","Management Buyout")*100
+gen			other_purpose = (general_purpose == 0 & working_capital == 0 & lbo == 0)*100
+
+* loan types *
+gen			tla = inlist(tranche_type,"Term Loan A", "Term Loan")*100
+gen			tlb = (instTL==1)*100
+gen			cl = creditline*100
+gen			other_type = (tla==0 & tlb==0 & cl==0 )*100 
+gen			cl_and_other = max(cl,other_type)
+
+
+* indicator leveraged loan *
+gen			levloan_spread = (allindrawn>225)*100 if allindrawn!=.
+
+* indicator whether in nonbank deal *
+bys			borrowercompanyid packageid: egen nonbank_deal = max(instTL*100)
+
+* label variables *
+label 	var 	facilityamt "Volume (in Mill. USD)"
+label 	var 	allindrawn "Spread (in basis points)"
+label 	var 	maturity "Maturity (in months)"
+label	var 	levloan_spread "Leveraged Loan (in \%)" 
+label 	var 	nonbank_deal "Part Nonbank Deal (in \%)"
+
+label	var 	general_purpose "General Purpose" 
+label	var 	working_capital "Working Capital" 
+label	var 	lbo "LBO" 
+label	var 	other_purpose "Other" 
+
+label	var 	tla "Term Loan A" 
+label	var 	tlb "Term Loan B" 
+label	var 	cl_and_other "Credit Line \& Other Loans" 
+
+// bank loans & nonbank loans
+eststo clear
+bys instTL: eststo: estpost summarize facilityamt  allindrawn   maturity   levloan_spread nonbank_deal
+esttab  using "$tables/table1b.tex", cells("mean(label(Mean) fmt(%12.2f)) sd(label(SD) fmt(%12.2f))") label  nomtitle nonumbers nonote  replace substitute(\_ _) mgroup("Bank loans" "Nonbank loans" , pattern(1  1 ) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))    modelwidth(60)
+
+eststo clear
+bys instTL: eststo: estpost summarize general_purpose working_capital lbo other_purpose [aweight=facilityamt], listwise
+esttab  using "$tables/table1c.tex", cells("mean(label(\%) fmt(%12.2f)) ") label  nomtitle nonumbers nonote  replace substitute(\_ _) mgroup("Bank loans" "Nonbank loans" , pattern(1  1 ) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))   modelwidth(60)
+
+eststo clear
+bys instTL: eststo: estpost summarize tla tlb  cl_and_other [aweight=facilityamt], listwise
+esttab  using "$tables/table1a.tex", cells("mean(label(\%) fmt(%12.2f)) ") label  nomtitle nonumbers nonote  replace substitute(\_ _) mgroup("Bank loans" "Nonbank loans" , pattern(1  1 ) prefix(\multicolumn{@span}{c}{) suffix(}) span erepeat(\cmidrule(lr){@span}))   modelwidth(60)
+
+log close  

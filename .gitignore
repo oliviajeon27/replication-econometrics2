@@ -1,0 +1,12 @@
+# ignore raw data
+data/Raw data/
+data/Intermediate data/
+
+# ignore Stata data
+*.dta
+*.log
+*.tmp
+
+# system files
+.DS_Store
+Thumbs.db
