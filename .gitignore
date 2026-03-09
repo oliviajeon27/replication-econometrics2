@@ -6,6 +6,7 @@ data/Intermediate data/
 *.dta
 *.log
 *.tmp
+*.zip
 
 # system files
 .DS_Store
