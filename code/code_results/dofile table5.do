@@ -8,7 +8,7 @@ set more off
 clear all
 set scheme s1color
 
-global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global package "C:\Users\ejeon8.ASURITE\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
 global project "$package"
 
 global output `"$package\results"'
@@ -22,7 +22,7 @@ log using "$package/logs/table5.log", replace
 ******************************************************************************
 use "$data\Final Data\main_facility_dataset.dta", clear
 
-keep if year>=2000 
+keep if year>=2000 //still until 2020.
 
 duplicates drop borrowercompanyid packageid facilityid, force 
 
@@ -36,8 +36,6 @@ format year_month %tm
 * keep neccessary variables *
 keep ym allindrawn facilityamt instTL year_month 
 
-
-
 *Compute the monthly (a) average allindrawn-spread and the (b) sum of facility amounts for bank vs nonbank loans
 //b) average allindrawn-spread
 preserve 
@@ -47,9 +45,9 @@ preserve
 restore
 
 //c) loan amounts
-collapse (first) ym (sum) facilityamt , by(instTL year_month)
+collapse (first) ym (sum) facilityamt , by(instTL year_month) //keeps one monthly date value for the group
 
-merge 1:1 instTL year_month using `allindrawn', nogen
+merge 1:1 instTL year_month using `allindrawn', nogen //weighted average all-in-drawn spread
 
 
 //Credit cycle variables
@@ -58,7 +56,7 @@ merge m:1 ym using "$data\Final Data\monthly_credit_cycles_measures_standardized
 //Multiply the cycle variables with the TLB-indicator
 foreach var of varlist  lag_* {
 	gen `var'_termb = 	`var'* instTL
-}
+} //interaction term: the effect of the credit cycle is different for Term Loan B loans
 
 //Compute the log of the facility_amt
 gen log_amt = log(facilityamt)

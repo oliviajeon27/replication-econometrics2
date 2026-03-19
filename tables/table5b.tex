@@ -1,0 +1,22 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{3}{c}}
+\toprule\toprule
+                              &\multicolumn{3}{c}{All-in-drawn Spread}        \\\cmidrule(lr){2-4}
+                              &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   \\
+\toprule
+Excess Bond Premium           &      22.932***&      12.390***&               \\
+                              &     (4.766)   &     (4.584)   &               \\
+[1em]
+Term B                        &     185.847***&     184.916***&     184.916***\\
+                              &     (5.851)   &     (5.660)   &     (3.937)   \\
+[1em]
+Excess Bond Premium x Term B  &               &      21.084** &      21.084** \\
+                              &               &     (9.522)   &     (8.275)   \\
+\toprule
+Year-Month FE                 &           N   &           N   &           Y   \\
+Obs.                          &         504   &         504   &         504   \\
+$R^2$                         &       0.681   &       0.689   &       0.922   \\
+\toprule\toprule
+\end{tabular}
+}

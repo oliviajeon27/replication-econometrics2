@@ -1,0 +1,22 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{3}{c}}
+\toprule\toprule
+                              &\multicolumn{3}{c}{Log(Facility Amount)}       \\\cmidrule(lr){2-4}
+                              &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   \\
+\toprule
+Excess Bond Premium           &    $-$0.443***&    $-$0.171***&               \\
+                              &     (0.042)   &     (0.037)   &               \\
+[1em]
+Term B                        &    $-$1.655***&    $-$1.631***&    $-$1.631***\\
+                              &     (0.060)   &     (0.055)   &     (0.039)   \\
+[1em]
+Excess Bond Premium x Term B  &               &    $-$0.545***&    $-$0.545***\\
+                              &               &     (0.063)   &     (0.048)   \\
+\toprule
+Year-Month FE                 &           N   &           N   &           Y   \\
+Obs.                          &         504   &         504   &         504   \\
+$R^2$                         &       0.662   &       0.718   &       0.929   \\
+\toprule\toprule
+\end{tabular}
+}

@@ -1,0 +1,25 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{5}{c}}
+\toprule\toprule
+                                        &\multicolumn{5}{c}{Log(Facility Amount)}                                       \\\cmidrule(lr){2-6}
+                                        &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   &\multicolumn{1}{c}{(5)}   \\
+\toprule
+Excess Bond Premium                     &    $-$0.068***&    $-$0.056***&               &               &               \\
+                                        &     (0.015)   &     (0.013)   &               &               &               \\
+[1em]
+Term B                                  &       0.482***&       0.449***&       0.415***&       0.589***&               \\
+                                        &     (0.027)   &     (0.029)   &     (0.028)   &     (0.038)   &               \\
+[1em]
+Excess Bond Premium x Term B            &               &    $-$0.120***&    $-$0.149***&    $-$0.230***&    $-$0.139***\\
+                                        &               &     (0.032)   &     (0.029)   &     (0.050)   &     (0.029)   \\
+\toprule
+Borrower FE                             &           Y   &           Y   &           Y   &           N   &           N   \\
+Year-Month FE                           &           N   &           N   &           Y   &           N   &           N   \\
+Deal FE                                 &           N   &           N   &           N   &           Y   &           Y   \\
+Borrower x Facility-Type FE             &           N   &           N   &           N   &           N   &           Y   \\
+Obs.                                    &      59,441   &      59,441   &      59,441   &      18,118   &      11,938   \\
+$R^2$                                   &       0.721   &       0.721   &       0.757   &       0.815   &       0.930   \\
+\toprule\toprule
+\end{tabular}
+}

@@ -41,7 +41,7 @@ preserve
 restore
 
 * collapse to deal x loantype level *
-collapse (sum) facilityamt (first) year_month, by(borrowercompanyid packageid instTL) //aggregate in borrower x package x loan type (figure5: month x loan type) : within borrower comparison vs time series comparison
+collapse (sum) facilityamt (first) year_month, by(borrowercompanyid packageid instTL) //aggregate in borrower x package x loan type (figure5: )
 
 * merge in weighted spread *
 merge 1:1 borrowercompanyid packageid instTL using `allindrawn', nogen
