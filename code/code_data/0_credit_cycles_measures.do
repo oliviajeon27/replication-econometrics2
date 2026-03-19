@@ -10,6 +10,8 @@ set more off
 clear all
 set scheme s1color
 
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+
 global output `"$package\results"'
 global data `"$package\data"'
 global code `"$package\code"'
@@ -30,7 +32,6 @@ format ym %tm
 * rename variables *
 keep ym ebp
 rename ebp eb_premium
-
 
 * Lag the ebp *
 tsset ym 

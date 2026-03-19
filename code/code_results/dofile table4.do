@@ -8,6 +8,10 @@ set more off
 clear all
 set scheme s1color
 
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global project "$package"
+
+
 global output `"$package\results"'
 global data `"$package\data"'
 global code `"$package\code"'
@@ -29,9 +33,9 @@ use "$data/final data/oldDS_main_facility_dataset", clear
 ***************
 
 *Choose the percentile
-//global percentile = 90
+//global percentile = 90 //remove top 10% worst shock
 //global percentile = 95
-global percentile = 98
+global percentile = 98 //remove top 2%, very extreme shocks
 
 
 ***************
@@ -43,27 +47,33 @@ keep countryofsyndication facilitystartdate facilityenddate corp borrowercompany
 keep if countryofsyndication == "USA"
 
 *Keep only the borrower that likely had an active relationship with lenders
-g loan_orig0408 = 0
+
+//if there is loan originated in 4.01.01-08.08.30
+g loan_orig0408 = 0 
 replace loan_orig0408 = 1 if facilitystartdate >= td(01jan2004) & facilitystartdate <= td(31aug2008) & facilitystartdate~=.
-g loan_post07 = 0
+// OR loan existed after 07.11.01 even if it is originated long ago
+g loan_post07 = 0 
 replace loan_post07 = 1 if facilitystartdate < td(01jan2004) & facilityenddate >= td(01nov2007) & facilityenddate~=.
+
 g validloan = loan_orig0408 + loan_post07
 keep if validloan == 1
 
 *Keep only working capital or corporate purposes
 //keep if inlist(primarypurpose,"Corp. purposes","Work. cap.")
-keep if corp == 1
+keep if corp == 1 
+// clean and comparable credit demand: working capital loan vs project finance loan are fundamentally different
 	
 unique borrowercompanyid
 
-*Keep the last loans (choose one facility if there is a deal with several facilities)
+*Keep the last loans (choose one facility if there is a deal with several facilities) most recent loan per borrower
 bysort borrowercompanyid (facilitystartdate): keep if facilitystartdate[_n] == facilitystartdate[_N]
 
 *keep only loans where there is one top 43 lender included
-bysort facilityid (top43): keep if top43[_N] == 1
+bysort facilityid (top43): keep if top43[_N] == 1 //shock is calculated using top lenders
+
 
 ***************
-* Step 2) Compute the pre-crisis syndicate shares
+* Step 2) Compute the pre-crisis syndicate shares (in borrower's perspective.) : Each borrower's dependence on bank
 ***************
 
 ********Compute the shares
@@ -75,7 +85,7 @@ preserve
 	order borrowercompanyid facilityid
 
 	*Collapse lender shares across all facility within a package
-	collapse (mean) finalalloc [weight=facilityamt], by(borrowercompanyid bank)
+	collapse (mean) finalalloc [weight=facilityamt], by(borrowercompanyid bank) //각 borrower에 대해, 위기 전 관계에서 어느 bank가 얼마나 큰 비중을 차지했는지
 	
 	*Reshape
 	rename finalalloc share
@@ -109,7 +119,7 @@ drop _merge
 
 
 ***************
-* Step 3) Compute the lending decline on the originating bank level
+* Step 3) Compute the lending decline on the originating bank level: how much each bank decrese the loan during GFC, decompose into bank loan vs institutional loan
 ***************
 
 ***** Create the bank-level lending decline (excluding the borrower itself)
@@ -127,7 +137,7 @@ preserve
 	keep instTL deal_instTL borrowercompanyid bank finalalloc period
 	
 	*Define institutional on the deal-level
-	replace instTL = deal_instTL //If use this line, then all loans in a deal with an institutional tranche get classified as institutional
+	replace instTL = deal_instTL //If use this line, then all loans in a deal with an institutional tranche get classified as institutional (원래는 tranche-leve)
 	
 	*Generate pre-crisis indicator
 	generate pre_gfc = (period == 1)
@@ -145,7 +155,7 @@ preserve
 		generate no_pre_instTL	= no_pre_instTL_plusown  - no_pre_instTL_own
 		generate no_pre_bank 	= no_pre_bank_plusown  - no_pre_bank_own
 		generate no_pre_total	= no_pre_total_plusown  - no_pre_total_own
-
+		
 		
 	***** For the crisis period
 		*Sum all loans (here: do not look at loan volumes but at quantities)
@@ -160,7 +170,7 @@ preserve
 		generate no_gfc_instTL 	= no_gfc_instTL_plusown - no_gfc_instTL_own
 		generate no_gfc_bank 	= no_gfc_bank_plusown - no_gfc_bank_own
 		generate no_gfc_total	= no_gfc_total_plusown - no_gfc_total_own
-	
+	//"How much did bank b reduce lending to other firms during the crisis?" -> can infer "What shock did borrower i face from its lenders?"
 	drop *_own
 	
 	keep  borrowercompanyid bank no_pre_instTL* no_pre_bank* no_pre_total* no_gfc_instTL* no_gfc_bank* no_gfc_total*
@@ -217,6 +227,7 @@ bysort borrowercompanyid: egen sum_shares = sum(share)
 replace share = share/sum_shares
 drop sum_shares
 bysort borrowercompanyid: egen sum_shares = sum(share)
+
 	
 	
 ***************
@@ -232,8 +243,8 @@ generate public = (publicprivate == "Public")
 
 *Industry identifier
 tostring primarysiccode, replace
-generate sic = substr(primarysiccode,1,1)
-destring sic, replace //Otherwise cannot use in regression as fixed effect or dummies
+generate sic = substr(primarysiccode,1,1) //first character -> borad sectors 
+destring sic, replace //Otherwise cannot use in regression as fixed effect or dummies -> control for sector difference
 tab sic
 
 *Number of firms
@@ -243,14 +254,14 @@ count if !missing(emp) & emp < 1000 //617
 count if !missing(emp) & emp >= 1000 //2,074
 
 *Predict the employment with sales
-	//Fitting with logs (works worse than level-levels)
+	//Fitting with log-log (works worse than level-levels)
 	//binscatter log_emp log_sales if emp < 3000, n(100)
-	//Only use each firm once
+	//Only use each firm once (if not, firms with many loans would get more weight)
 	bysort borrowercompanyid: generate first_obs = (_n==1)
 	regress log_emp c.log_sales#i.sic if first_obs == 1, robust
 	predict pred_emp
 	replace pred_emp = exp(pred_emp) 
-	order pred_emp, after(emp)
+	order pred_emp, after(emp) //use fitted value if employment data is missing
 	
 	*Test the regression 
 	//generate below_1000 = emp < 1000
@@ -299,6 +310,144 @@ generate weight_firm = pred_emp/total_emp if firm_type!="large"
 drop total_emp
 
 
+*==========================================================================
+******************************************************
+* TABLE 4: FULL REPLICATION (90 / 95 / 98) ** add this by myself
+******************************************************
+
+tempname T
+matrix `T' = J(5,3,.)
+matrix rownames `T' = ///
+    "Total employment decline (%)" ///
+    "Credit supply threshold (%)" ///
+    "Share due to credit supply (%)" ///
+    "Nonbank share (%)" ///
+    "Bank share (%)"
+
+matrix colnames `T' = "tau=90" "tau=95" "tau=98"
+
+local col = 1
+
+foreach p in 90 95 98 {
+
+    di "Running percentile = `p'"
+
+    ************************************
+    * Step 1: Compute threshold
+	
+    preserve
+        collapse (sum) chg_tot_firm=chg_tot ///
+            (last) firm_type weight_firm ///
+            [pweight=share], by(borrowercompanyid)
+
+        _pctile chg_tot_firm, p(`p')
+        scalar q = r(r1)
+    restore
+
+    ************************************
+    * Step 2: Borrower-level shock
+
+    capture drop chg_tot_firm
+    bysort borrowercompanyid: egen chg_tot_firm = total(chg_tot*share)
+
+    ************************************
+    * Step 3: Counterfactual shocks
+
+    capture drop cf_firm chg_b_q chg_nb_q chg_tot_b chg_tot_nb chg_tot_b_nb
+
+    gen cf_firm = (chg_tot_firm < q)
+
+    gen chg_b_q = q if cf_firm==1
+    replace chg_b_q = chg_b if cf_firm==0
+
+    gen chg_nb_q = q if cf_firm==1
+    replace chg_nb_q = chg_nb if cf_firm==0
+
+    bysort borrowercompanyid: egen chg_tot_b = ///
+        total(chg_b_q*(1-nb_dep)*share + chg_nb*nb_dep*share)
+
+    bysort borrowercompanyid: egen chg_tot_nb = ///
+        total(chg_b*(1-nb_dep)*share + chg_nb_q*nb_dep*share)
+
+    bysort borrowercompanyid: egen chg_tot_b_nb = ///
+        total(chg_b_q*(1-nb_dep)*share + chg_nb_q*nb_dep*share)
+
+    ************************************
+    * Step 4: Collapse to firm level
+
+    preserve
+        keep borrowercompanyid firm_type weight_firm ///
+             chg_tot_firm chg_tot_b chg_tot_nb chg_tot_b_nb
+
+        bysort borrowercompanyid: keep if _n==1
+
+        ************************************
+        * Step 5: Coefficients
+
+        gen coef_small  = 2.16/19.1
+        gen coef_medium = 1.84/19.1
+
+        ************************************
+        * Step 6: Predicted employment
+
+        gen empchg_pred = chg_tot_firm * coef_small if firm_type=="small"
+        replace empchg_pred = chg_tot_firm * coef_medium if firm_type=="medium"
+
+        gen empchg_cf1 = chg_tot_b_nb * coef_small if firm_type=="small"
+        replace empchg_cf1 = chg_tot_b_nb * coef_medium if firm_type=="medium"
+
+        gen empchg_cf2 = chg_tot_nb * coef_small if firm_type=="small"
+        replace empchg_cf2 = chg_tot_nb * coef_medium if firm_type=="medium"
+
+        gen empchg_cf3 = chg_tot_b * coef_small if firm_type=="small"
+        replace empchg_cf3 = chg_tot_b * coef_medium if firm_type=="medium"
+
+        ************************************
+        * Step 7: Weighted averages (manual)
+
+        gen d1 = empchg_pred - empchg_cf1
+        gen d2 = empchg_pred - empchg_cf2
+        gen d3 = empchg_pred - empchg_cf3
+
+        egen wsum = total(weight_firm)
+        egen num1 = total(d1 * weight_firm)
+        egen num2 = total(d2 * weight_firm)
+        egen num3 = total(d3 * weight_firm)
+
+        scalar contr1 = num1[1]/wsum[1]
+        scalar contr2 = num2[1]/wsum[1]
+        scalar contr3 = num3[1]/wsum[1]
+
+    restore
+
+    ************************************
+    * Step 8: Convert to table numbers
+
+    scalar total_decline = 7.0
+    scalar threshold_pct = 100*q
+
+    scalar share_total = 100 * abs(contr1) / 0.07
+    scalar share_nb    = 100 * abs(contr2) / abs(contr1)
+    scalar share_b     = 100 * abs(contr3) / abs(contr1)
+
+    matrix `T'[1,`col'] = total_decline
+    matrix `T'[2,`col'] = threshold_pct
+    matrix `T'[3,`col'] = share_total
+    matrix `T'[4,`col'] = share_nb
+    matrix `T'[5,`col'] = share_b
+
+    local ++col
+}
+
+******************************************************
+* EXPORT TABLE
+
+esttab matrix(`T') using "$tables/table4.tex", replace ///
+    nomtitles nonumbers noobs
+
+*=======================================================
+/*
+
 ***************
 * Compute the percentile
 ***************
@@ -343,15 +492,15 @@ restore
 	*Compute the counterfactual changes
 		*True lending
 		bysort borrowercompanyid: egen chg_tot_firm = total(chg_tot*share)
-		//bysort borrowercompanyid: egen chg_tot_firm_test = total(chg_b*(1-nb_dep)*share+chg_nb*nb_dep*share)
+		//bysort borrowercompanyid: egen chg_tot_firm_test = total(chg_b*(1-nb_dep)*share+chg_nb*nb_dep*share) ->  "내가 의존하던 은행들이 얼마나 망했는가"
 		
 		*Identify the firms that had a lending decline more than the percentile
 		generate cf_firm = (chg_tot_firm < $quantile_chg_tot)
 		
 		*Counterfactual: Change bank lending
 		generate chg_b_q = $quantile_chg_tot if cf_firm == 1
-		replace chg_b_q = chg_b if cf_firm == 0
-		bysort borrowercompanyid: egen chg_tot_b = total(chg_b_q*(1-nb_dep)*share+chg_nb*nb_dep*share)
+		replace chg_b_q = chg_b if cf_firm == 0 //remove extreme tail shock
+		bysort borrowercompanyid: egen chg_tot_b = total(chg_b_q*(1-nb_dep)*share+chg_nb*nb_dep*share) //recompute the firm level credit "What would firm i's credit look like if extreme shocks were removed?"
 
 		*Counterfactual: Change nonbank lending
 		generate chg_nb_q = $quantile_chg_tot if cf_firm == 1
@@ -369,6 +518,7 @@ restore
 		*Compute the mean nonbank dependence across all syndicate members
 		egen nb_dep_q = wtmean(nb_dep), weight(share)
 		bysort borrowercompanyid: egen chg_tot_nb_dep = total(chg_b*(1-nb_dep_q)*share+chg_nb*nb_dep_q*share)		
+
 		
 keep borrowercompanyid chg_tot_firm chg_tot_b chg_tot_nb chg_tot_b_nb chg_tot_nb_dep salesatclose  publicprivate emp company primarysiccode firm_type weight_firm cf_firm
 bysort borrowercompanyid: keep if _n == 1	
@@ -385,14 +535,15 @@ generate coef_small = 2.16/19.1
 generate coef_medium = 1.84/19.1
 
 
-****** Predicted losses by the linear regression
-	*Predicted employment growth by linear regression results
+****** Predicted losses by the linear regression 
+	*Predicted employment growth by linear regression results (map counter factual to employment)
 	generate empchg_pred = chg_tot_firm * coef_small if firm_type == "small"
 	replace empchg_pred = chg_tot_firm * coef_medium if firm_type == "medium"
 	
 	*Average predicted losses by lending decline (could be credit demand as well as supply)
-	egen avg_empchg_pred = wtmean(empchg_pred), weight(weight_firm)
+	egen avg_empchg_pred = wtmean(empchg_pred), weight(weight_firm) //"Effect of extreme credit shocks on employment"
 	display(avg_empchg_pred)
+
 
 
 *******Counterfactual 1: Replicate the Chodorow-Reich counterfactual analysis
@@ -432,5 +583,7 @@ capture drop chg_tot_cf3 empchg_cf3	avg_contr_cf3  chg_tot_cf3 empchg_cf3 avg_co
 	egen avg_contr_cf3 = wtmean(empchg_pred-empchg_cf3), weight(weight_firm)
 	display(avg_contr_cf3[1]) //-xx% of employment growth comes from credit supply
 	display(avg_contr_cf3[1]/avg_contr_cf1[1]) //Percentage of credit supply loses
+	
+*/
 	
 log close

@@ -13,6 +13,10 @@ set more off
 clear all
 set scheme s1color
 
+
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global project "$package"
+
 global output `"$package\results"'
 global data `"$package\data"'
 global code `"$package\code"'
@@ -26,13 +30,15 @@ log using "$package/logs/main_facility_dataset.log", replace
 * open new Dealscan *
 use "$data\Raw Data\dealscan_new\Dealscan_data_full_compress.dta", clear
 
-// drop certain variables
-drop law_firm_borrower_other law_firm_borrower_primary law_firm_lender_other law_firm_lender_primary law_firm_name foreign_exchange bankers_acceptance bid_option multi_currency swingline letter_of_credit eligible_property_value marketable_securities property_plant_equipment cash_cash_equivalents inv_work_in_progress inv_finished_goods inv_raw_material inventory acc_rec_foreign acc_rec_domestic oil_gas_reserves accounts_receivable capex_final_usd capex_initial_usd ebitda_final_amount_usd ebitda_initial_amount_usd terms_changes percentage_of_net_income insurance_proceeds_sweep
+/* drop certain variables
+drop 
+law_firm_borrower_other law_firm_borrower_primary law_firm_lender_other law_firm_lender_primary law_firm_name foreign_exchange bankers_acceptance bid_option multi_currency swingline letter_of_credit eligible_property_value marketable_securities property_plant_equipment cash_cash_equivalents inv_work_in_progress inv_finished_goods inv_raw_material inventory acc_rec_foreign acc_rec_domestic oil_gas_reserves accounts_receivable capex_final_usd capex_initial_usd ebitda_final_amount_usd ebitda_initial_amount_usd terms_changes percentage_of_net_income insurance_proceeds_sweep
+*/
 
 /* ------------------------- */
 /* 		SAMPLE SELECTION	 */
 /* ------------------------- */
-
+rename *, lower
 * keep US, USD, syndicated loans
 keep if country == "United States" & country_of_syndication=="United States"
 keep if tranche_currency == "U.S. Dollar" 	| tranche_currency == "US Dollar (Same Day) (pre Mar 2014)"
@@ -87,8 +93,8 @@ save "$data\Intermediate Data\facility_dataset_new_DS.dta", replace
 * M&A adjustments for top banks
 import excel "$data\Raw Data\mapping\Bank mapping_final.xlsx", sheet("Output") firstrow clear
 rename lender lender_name
-merge 1:m lender_name using "$data\Intermediate Data\facility_dataset_new_DS.dta",nogen  keep(matched using) // all should match
-rename mappedname mappedlender
+merge 1:m lender_name using "$data\Intermediate Data\facility_dataset_new_DS.dta",nogen  keep(matched using) // all should match -> if there is differnt name for same bank, make it same
+rename mappedname mappedlender //mappedlender: standardized bank name
 
 * use ultimate parent, not lender if missing
 replace mappedlender = lender_parent_name if mappedlender == ""
@@ -103,7 +109,7 @@ save "$data\Intermediate Data\facility_dataset_new_DS.dta", replace
 * Lender institution type
 g lentype = "Bank" if strpos(lender_institution_type,"Bank")
 replace lentype = "IB" if lender_institution_type == "Investment Bank"
-replace lentype = "Nonbank" if lentype == ""
+replace lentype = "Nonbank" if lentype == "" //distinguish bank vs nonbank for GFC analysis
 
 save "$data\Intermediate Data\facility_dataset_new_DS.dta", replace
 
@@ -239,12 +245,12 @@ rename mappedtype type
 replace	tenor_maturity = . if tenor_maturity==0 //=missing end date
 
 
-/* ------------------------------------ */
+/* ------------------------------------ 
 /* 	drop variables we don't need!		*/
 /* ------------------------------------ */
 
 drop	lender_name lender_parent_name lender_parent_id  additional_roles lender_commit lender_operating_country lender_parent_operating_country additional_borrowers ticker perm_id legal_entity_id_lei city state_province zip country region sales_size broad_industry_group major_industry_group parent parent_ticker sponsor guarantor target organization_type senior_debt_to_ebitda total_debt_to_ebitda company_url lead_arranger number_of_lead_arrangers bookrunner number_of_bookrunners top_tier_arranger number_of_top_tier_arrangers lead_left number_of_lead_left arranger number_of_arrangers co_arranger number_of_co_arrangers agent number_of_agents lead_manager number_of_lead_managers all_lenders number_of_lenders lender_region lender_parent_region lender_institution_type deal_permid deal_amount_converted deal_input_date  project_finance phase deal_active deal_refinancing purpose_remark deal_remark deal_amended sales_size_at_close tranche_permid league_table_amount league_table_amount_converted _100_percent_vote tranche_amount_converted market_segment market_of_syndication country_of_syndication league_table_tranche_date   repayment_type repayment_schedule collateral_security_type distribution_method primary_purpose secondary_purpose tertiary_purpose tranche_refinancing sponsored project_finance_sponsor tranche_active closed_date completion_date mandated_date launch_date average_life multi_currency_tranche borrower_consent agent_consent assignment_minimum assignment_fee new_money new_money_converted amend_extend_flag tranche_amended currency_onshore_offshore base_reference_rate margin_bps all_base_rate_spread_margin base_rate_margin_bps floor_bps call_protection call_protection_text all_in_spread_undrawn_bps annual_fee_bps commitment_fee_bps letter_of_credit_fee_bps upfront_fee_bps all_in_fee_asia_only base_rate_comment repayment_comment performance_pricing performance_pricing_grid performance_pricing_remark cancellation_fee_bps documentary_issuing_fee_bps documentary_lc_fee_bps tiered_upfront_fee utilization_fee_bps all_fees covenants max_leverage_ratio max_debt_to_cash_flow max_sr_debt_to_cash_flow tangible_net_worth net_worth min_fixed_charge_coverage_ratio min_debt_service_coverage_ratio min_interest_coverage_ratio min_cash_interest_coverage_ratio max_debt_to_tangible_net_worth max_debt_to_equity_ratio min_current_ratio max_loan_to_value_ratio all_covenants_financial covenant_comment excess_cf_sweep asset_sales_sweep material_restriction debt_issue_sweep equity_issue_sweep collateral_release required_lenders all_covenants_general
-
+*/
 compress
 
 
@@ -359,7 +365,7 @@ save "$data/Intermediate Data/deal_lead", replace
 use "$data/Final Data/main_facility_dataset", clear 
 
 // some banks have multiple roles - consolidating that into one observation 
-drop primary_role
+drop primary_role //duplicates because of role difference
 duplicates drop
 quietly ds  allocamt finalalloc bank facilityid packageid, not
 local varlist `r(varlist)'

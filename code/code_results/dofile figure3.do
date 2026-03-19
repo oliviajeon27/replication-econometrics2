@@ -9,6 +9,7 @@ set more off
 clear all
 set scheme s1color
 
+
 global output `"$package\results"'
 global data `"$package\data"'
 global code `"$package\code"'
@@ -56,7 +57,7 @@ preserve
 	destring gvkey, replace
 	drop note
 	
-	*Reformat the dates
+	*Reformat the dates (right now it is string so change to date type)
 	local var_list "ds_start ds_end comp_start comp_end"	
 	foreach var of local var_list {
 		rename `var' `var'_help
@@ -69,6 +70,21 @@ preserve
 	generate year = 2000 if _n == 1
 	replace year = year[_n-1] + 1 if _n > 1 & year[_n-1] < 2019
 	bysort lenderid: replace year = 2000 + _n if missing(year)
+	/*
+	tempfile base years
+	save `base'
+	
+	clear
+	set obs 20
+	gen year = 2000 + _n - 1
+	save `years'
+	
+	use `base', clear
+	cross using `years'
+	*/
+	
+	
+	
 	xtset lenderid year
 	tsfill, full
 	
@@ -96,7 +112,7 @@ merge m:1 lenderid year using `schwert_lender_link'
 keep if _merge == 3 //Key line: Only keep the lender id observation that could be matched to Compustat
 drop _merge
 
-*Merge in the Compustat firm names
+*Merge in the Compustat firm names (lender!!)
 preserve 
 	use "$data\Intermediate Data\Combined_Compustat_Annual.dta", clear
 	

@@ -5,8 +5,14 @@ clear all
 * changes in lending from before to during the crisis.
 *
 * We focus on top 43 banks and largely follow Chodorow-Reich (2014)
-*******************************************************************************   
-
+*******************************************************************************
+* lender-facility -> bank level
+* For each bank, 1) how much it lend before/during the crisis 2) how much change in lending is tied to nonbank trancehs, 
+   
+global project "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global data "$project\data"
+global code "$project\code"
+global result "$project\result"
 *********** Compute number and volume of loans per bank. 
 
 use "$data/final data/oldDS_main_facility_dataset", clear
@@ -26,12 +32,12 @@ keep if period == 1 | period == 3
 /* 	COMPUTE VOLUME DECOMPOSITION  */
 /* ------------------------------ */
 
-*Compute the volume and number of loans for each bank
-collapse (sum) no=finalalloc vol=allocamt, by(instTL bank period corp)
+*Compute "number of loans" and "volume" for each bank (collapse to bank, type, period, purpose)
+collapse (sum) no=finalalloc vol=allocamt, by(instTL bank period corp) // instead of counting each participation as 1 full loan, they count the lender's allocated share.
 compress
 
 *Reshape the data
-reshape wide no vol, i(bank period instTL) j(corp)
+reshape wide no vol, i(bank period instTL) j(corp) //seperate variables for corporate loans vs non
 rename *0 *_ncr
 rename *1 *_cr
 
@@ -65,7 +71,7 @@ generate vol_tot_pre = vol_b_pre + vol_nb_pre
 generate vol_tot_gfc = vol_b_gfc + vol_nb_gfc
 gsort -vol_tot_pre
 
-*Compute lending changes
+*Compute lending changes*
 generate lenchg_tot_vol = vol_tot_gfc / (vol_tot_pre/2) - 1
 generate lenchg_b_vol = vol_b_gfc / (vol_b_pre/2) - 1
 generate lenchg_nb_vol = vol_nb_gfc / (vol_nb_pre/2) - 1
@@ -86,7 +92,7 @@ generate lenchg_nb_vol_cr = vol_cr_nb_gfc / (vol_cr_nb_pre/2) - 1
 **
 
 /* ------------------------------ */
-/* 	COMPUTE NUMBER DECOMPOSITION  */
+/* 	COMPUTE NUMBER (not volume) DECOMPOSITION  */
 /* ------------------------------ */
 
 *Compute total lending
@@ -97,7 +103,6 @@ generate no_tot_gfc = no_b_gfc + no_nb_gfc
 generate lenchg_tot_no = no_tot_gfc / (no_tot_pre/2) - 1
 generate lenchg_b_no = no_b_gfc / (no_b_pre/2) - 1
 generate lenchg_nb_no = no_nb_gfc / (no_nb_pre/2) - 1
-
 
 *Compute nonb dependence prior to the gfc
 generate nb_dep_no = no_nb_pre/no_tot_pre
@@ -134,13 +139,13 @@ foreach var in lehman_exp loading revat renco reco da{
 }
 gen ibnb = type=="IB" | type=="Nonbank"
 
-label var std_loading "ABX Exposure" 
-label var std_lehman_exp "Lehman exposure"
-label var std_revat "07-08 Trading Rev/AT" 
-label var std_reco "RE CO flag" 
-label var std_renco "07-08 RE NCO/AT"  
-label var std_da "07 Deposits/Assets" 
-label var ibnb "IB/FinCo indicator" 
+label var std_loading "ABX Exposure" //index traking price of subprime MBS -> exposed to subprime mortgage risk
+label var std_lehman_exp "Lehman exposure" //counterparty relationship, derivative, repo, security holding
+label var std_revat "07-08 Trading Rev/AT"  // whether bank rely more on trading activities (investment style or not)
+label var std_reco "RE CO flag" //real estate charge off: eliminate from balance sheet -> significant real estate loan loss=1
+label var std_renco "07-08 RE NCO/AT"  //severity measure of the real estate shock
+label var std_da "07 Deposits/Assets"  //deposit funded vs market funded
+label var ibnb "IB/FinCo indicator"  //1 if IB or financial company(non deposit)
 label var nb_dep_no "Nonbank Dependence"
 label var nb_dep_vol "Nonbank Dependence"
 label var nb_dep_no_cr "Nonbank Dependence"

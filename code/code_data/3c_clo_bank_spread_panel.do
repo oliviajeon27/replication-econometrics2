@@ -9,11 +9,14 @@ set more off
 clear all
 set scheme s1color
 
-global output `"$package\results"'
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global project "$package"
+
+global output `"$package\results"' //change from output to result
 global data `"$package\data"'
 global code `"$package\code"'
 global figures `"$package\figures"'
-global code `"$package\tables"'
+global tables `"$package\tables"'  //typo
 
 capture log close
 log using "$package/logs/prep_clo_bank_spreads.log", replace

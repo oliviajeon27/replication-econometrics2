@@ -9,6 +9,7 @@ set more off
 clear all
 set scheme s1color
 
+
 global data `"$package\data"'
 global code `"$package\code"'
 global figures `"$package\figures"'

@@ -15,7 +15,7 @@ set scheme s1color
 * in this file - all other locations are derived from package location 
 ******************************************************************************
 
-global package "C:\Users\shillenbrand\Dropbox (Harvard University)\2_Nonbank lending and credit cyclicality\0_NEW FOLDER\replication_package_final"
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
 
 global data `"$package\data"'
 global code `"$package\code"'

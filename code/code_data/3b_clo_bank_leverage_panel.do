@@ -9,11 +9,14 @@ set more off
 clear all
 set scheme s1color
 
-global output `"$package\results"'
+global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+global project "$package"
+
+global output `"$package\results"' //change from output to result
 global data `"$package\data"'
 global code `"$package\code"'
 global figures `"$package\figures"'
-global code `"$package\tables"'
+global tables `"$package\tables"'  //typo
 
 capture log close
 log using "$package/logs/prep_clo_bank_leverage.log", replace
@@ -21,7 +24,7 @@ log using "$package/logs/prep_clo_bank_leverage.log", replace
 ******************************************************************************
 
 * Start with loan-level data set
-use "$data\Final Data\main_facility_dataset_deallead.dta", clear
+use "$data\Final Data\main_facility_dataset_deallead.dta", clear //need to link with schwert linking table
 
 * keep only neccessary variables *
 keep   allocamt lender_id qdate lead_deal type year 
@@ -41,7 +44,7 @@ preserve
 	tempfile link
 	save `link', replace
 restore
-merge m:1 lender_id_new_DS using `link', keep(1 3) nogen
+merge m:1 lender_id_new_DS using `link', keep(1 3) nogen //because schwert file use old dealscan lender id - compustat gvkey
 
 *Load the Schwert link file and create a annual panel with valid links
 preserve
@@ -91,7 +94,7 @@ preserve
 	save	`schwert_lender_link'
 restore
 merge m:1 lender_id_old_DS year using `schwert_lender_link', keep(3) nogen
-
+//keep(3): only matched observation
 
 *Merge in the Compustat firm names
 preserve 
