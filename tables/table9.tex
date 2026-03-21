@@ -1,0 +1,46 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{4}{c}}
+\toprule\toprule
+                                        &\multicolumn{4}{c}{Log(Facility Amount)}                       \\\cmidrule(lr){2-5}
+                                        &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+\toprule
+Lead Bank $\times$ EBP                  &       0.061***&       0.038***&       0.005   &    $-$0.011   \\
+                                        &     (0.013)   &     (0.012)   &     (0.010)   &     (0.007)   \\
+[1em]
+Nonbank $\times$ EBP                    &    $-$0.178***&    $-$0.245***&    $-$0.117** &    $-$0.154** \\
+                                        &     (0.053)   &     (0.061)   &     (0.048)   &     (0.060)   \\
+[1em]
+Lead Bank $\times$ Small $\times$ EBP   &    $-$0.024   &               &               &               \\
+                                        &     (0.015)   &               &               &               \\
+[1em]
+Nonbank $\times$ Small $\times$ EBP     &    $-$0.149***&               &               &               \\
+                                        &     (0.054)   &               &               &               \\
+[1em]
+Lead Bank $\times$ Young $\times$ EBP   &               &       0.023   &               &               \\
+                                        &               &     (0.015)   &               &               \\
+[1em]
+Nonbank $\times$ Young $\times$ EBP     &               &    $-$0.024   &               &               \\
+                                        &               &     (0.066)   &               &               \\
+[1em]
+Lead Bank $\times$ Young-DS $\times$ EBP&               &               &    $-$0.073***&               \\
+                                        &               &               &     (0.013)   &               \\
+[1em]
+Nonbank $\times$ Young-DS $\times$ EBP  &               &               &    $-$0.210***&               \\
+                                        &               &               &     (0.051)   &               \\
+[1em]
+Lead Bank $\times$ Public $\times$ EBP  &               &               &               &       0.059***\\
+                                        &               &               &               &     (0.012)   \\
+[1em]
+Nonbank $\times$ Public $\times$ EBP    &               &               &               &    $-$0.111** \\
+                                        &               &               &               &     (0.051)   \\
+\toprule
+Borrower FE                             &           N   &           N   &           N   &           N   \\
+Year-Month FE                           &           N   &           N   &           N   &           N   \\
+Deal FE                                 &           Y   &           Y   &           Y   &           Y   \\
+Lender-Role FE                          &           Y   &           Y   &           Y   &           Y   \\
+Obs.                                    &      44,372   &      45,023   &     106,537   &      90,640   \\
+$R^2$                                   &       0.872   &       0.856   &       0.862   &       0.865   \\
+\toprule\toprule
+\end{tabular}
+}

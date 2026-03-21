@@ -1,0 +1,24 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{4}{c}}
+\toprule\toprule
+                                        &\multicolumn{4}{c}{Log(Amount)}                                \\\cmidrule(lr){2-5}
+                                        &\multicolumn{1}{c}{(1)}   &\multicolumn{1}{c}{(2)}   &\multicolumn{1}{c}{(3)}   &\multicolumn{1}{c}{(4)}   \\
+\toprule
+Excess Bond Premium                     &    $-$0.207***&    $-$0.209***&               &               \\
+                                        &     (0.034)   &     (0.035)   &               &               \\
+[1em]
+Term B                                  &    $-$1.474***&    $-$1.725***&    $-$1.813***&    $-$1.878***\\
+                                        &     (0.140)   &     (0.119)   &     (0.124)   &     (0.112)   \\
+[1em]
+Excess Bond Premium x Term B            &    $-$0.276***&    $-$0.337***&    $-$0.387***&    $-$0.373***\\
+                                        &     (0.059)   &     (0.055)   &     (0.048)   &     (0.055)   \\
+\toprule
+Bank FE                                 &           N   &           Y   &           N   &           N   \\
+Bank x Month FE                         &           N   &           N   &           Y   &           Y   \\
+Role                                    &         All   &         All   &         All   &    Non-Lead   \\
+Obs.                                    &      17,063   &      17,063   &      14,402   &      13,780   \\
+$R^2$                                   &       0.227   &       0.571   &       0.843   &       0.833   \\
+\toprule\toprule
+\end{tabular}
+}

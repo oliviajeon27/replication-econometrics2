@@ -9,9 +9,6 @@ set more off
 clear all
 set scheme s1color
 
-global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
-global project "$package"
-
 global data `"$package\data"'
 global code `"$package\code"'
 global figures `"$package\figures"'
@@ -105,37 +102,7 @@ preserve
     drop tranche_type_l
 
     * keep LoanConnector identifiers
-    keep lpc_tranche_id tranche_active_date lien
-    duplicates drop lpc_tranche_id tranche_active_date, force
-
-    tempfile lien_new
-    save `lien_new'
-restore
-
-preserve
-    import excel "$data\Raw Data\dealscan_new\WRDS_to_LoanConnector_IDs.xlsx", firstrow clear
-
-    * check names once with describe if this fails
-    keep LoanConnectorTrancheID WRDSfacility_id
-    rename LoanConnectorTrancheID lpc_tranche_id
-    rename WRDSfacility_id facilityid
-
-    * match type to the using file if needed
-    tostring lpc_tranche_id, replace
-
-    duplicates drop lpc_tranche_id, force
-
-    tempfile idlink
-    save `idlink'
-restore
-
-preserve
-    use `lien_new', clear
-
-    * attach old WRDS facilityid to each new DealScan tranche
-    merge m:1 lpc_tranche_id using `idlink', keep(3) nogen
-
-    * if multiple rows map to same facility, mark facility as second-lien if any row is second-lien
+    keep facilityid lien
     collapse (max) lien, by(facilityid)
 
     tempfile lien

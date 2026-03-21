@@ -9,7 +9,7 @@ clear all
 * lender-facility -> bank level
 * For each bank, 1) how much it lend before/during the crisis 2) how much change in lending is tied to nonbank trancehs, 
    
-global project "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+
 global data "$project\data"
 global code "$project\code"
 global result "$project\result"

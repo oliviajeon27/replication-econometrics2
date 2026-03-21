@@ -11,7 +11,7 @@ tempfile tfile
 * - lenders 
 *******************************************************************************   
 
-global project "C:\Users\ejeon8.ASURITE\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
+
 global data "$project\data"
 global code "$project\code"
 global result "$project\result"

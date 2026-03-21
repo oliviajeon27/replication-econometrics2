@@ -13,10 +13,6 @@ set more off
 clear all
 set scheme s1color
 
-
-global package "C:\Users\Eunkyung\ASU Dropbox\Eunkyung Jeon\2026-1\econometrics\12. replicate\nonbank lending and credit cyclicality"
-global project "$package"
-
 global output `"$package\results"'
 global data `"$package\data"'
 global code `"$package\code"'
