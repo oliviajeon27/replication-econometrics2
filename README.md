@@ -11,9 +11,10 @@ The paper studies the role of banks and nonbanks in driving fluctuations in synd
 
 # Instructions to Run the Code
 
-1. Open the Stata do-file: master file.do
-2. Set the working directory to the replication folder.
-3. Run the master file. It will:
+1. Download the datasets from the provided email zip file and place them into the replication directory. (Due to GitHub file size limits, datasets are distributed separately via email as a compressed archive.)
+2. Open the Stata do-file: master file.do
+3. Set the working directory to the replication folder.
+4. Run the master file. It will:
 - clean raw data
 - construct variables
 - reproduce all tables and figures
@@ -21,6 +22,7 @@ The paper studies the role of banks and nonbanks in driving fluctuations in synd
 ---
 
 # Folder Structure
+- data/ Raw, Intermediate and Final datasets
 - code/ Stata scripts for cleaning and estimation
 - tables/ Regression output tables
 - figures/ Generated figures
@@ -48,6 +50,19 @@ The following datasets are not publicly accessible:
 Processed versions of these datasets are provided by the authors.  
 Therefore scripts:3a, 3b, 3c, 4a, 4b 
 are excluded from the master file.
+
+| Raw Data       | Intermediate                                   | Final Data                      | File |
+|----------------|-----------------------------------------------|----------------------------------|------|
+| Dealscan_old   | oldDS_raw_facility_dataset                    |                                  | 1a   |
+| +compustat     | +allocation                                   | oldDS_main_facility_dataset      | 1b   |
+|                | +crisis/lender                                | GFC_data                         | 1c   |
+| Dealscan_new   | facility_dataset_new_DS                       | main_facility_dataset            | 2    |
+|                |                                               | main_facility_dataset_deallead   | 2    |
+| creditflux     | CLO_capitalstructure_spreads_primarymarket    |                                  | 3a   |
+| +ebp           |                                               | CLO_Bank_leverage                | 3b   |
+|                |                                               | clo_bank_spreads                 | 3c   |
+| morningstar    | AggregateAuM                                  |                                  | 4a   |
+| snc            | AggregateAuM                                  | nonbank_lender_composition       | 4b   |
 
 ---
 
